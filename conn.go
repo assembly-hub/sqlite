@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/assembly-hub/db"
+	"github.com/assembly-hub/impl-db-sql"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -24,7 +26,7 @@ func NewClient(cfg *Config) *Client {
 	return c
 }
 
-func (c *Client) Connect() (*sql.DB, error) {
+func (c *Client) Connect() (db.Executor, error) {
 	auth := ""
 	if c.cfg.Username != "" && c.cfg.Password != "" {
 		auth = fmt.Sprintf("?_auth&_auth_user=%s&_auth_pass=%s", c.cfg.Username, c.cfg.Password)
@@ -37,9 +39,9 @@ func (c *Client) Connect() (*sql.DB, error) {
 			dsn += "&" + c.cfg.DSNParams
 		}
 	}
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%s%s", c.cfg.DBName, auth))
+	conn, err := sql.Open("sqlite3", fmt.Sprintf("%s%s", c.cfg.DBName, auth))
 	if err != nil {
 		return nil, err
 	}
-	return db, err
+	return impl.NewDB(conn), err
 }
